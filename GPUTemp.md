@@ -28,3 +28,14 @@ Thread：相当于opencl 中的work-item
 SP:   相当于opencl 中的PE
 SM:  相当于opencl 中的CU
 warp: 相当于opencl 中的wavefront(简称wave).
+
+2、Computer Shader
+Dispatch(x,y,z):线程组大小x*y*z
+numthreads(x,y,z):单个线程组线程数量x*y*z
+--SV_GroupThreadID 表示该线程在该组内的位置
+--SV_GroupID 表示整个组所分配的位置
+--SV_DispatchThreadID 表示该线程在所有组的线程中的位置
+--SV_GroupIndex 表示该线程在该组内的索引
+SM4.5 允许numthreads最多768条线程
+SM5.0 允许numthreads最多1024条线程
+
