@@ -1,0 +1,30 @@
+GPU相关记录：
+1、warps or wavefronts：
+
+Nvidia版本：
+在NVidia GPU中，最基本的处理单元是所谓的SP(Streaming Processor)，而一颗NVidia GPU中，会有非常多的SP可以同时做计算；而数个SP会在附加一些其他单元，一起组成一个SM(Streaming Multiprocessor)。
+几个SM则会在组成所谓的 TPC(Texture Processing Clusters)。在G80/G92的架构下，总共会有128个SP，以8个SP为一组，组成16个SM，再以两个SM 为一个TPC，共分成8个TPC来运作。而在新一代的GT200里，SP
+则是增加到240个，还是以8个SP组成一个SM，但是改成以3个SM组成一个TPC，共10组TPC。
+对应CUDA：
+应该是没有TPC的那一层架构，而是只要根据GPU的SM、SP的数量和资源来调整就可以了。如果把CUDA的Grid-Block-Thread架构对应到实际的硬件上的话，会类似对应成GPU-Streaming Multiprocessor-Streaming Processor;
+一整个Grid会直接丢给GPU来执行，而Block大致就是对应到SM，thread则大致对应到SP。当然，这个讲法并不是很精确，只是一个简单的比喻而已。
+
+AMD 版本：
+OPENCL架构
+另外work-item对应硬件上的一个PE（processing element）,而一个work-group对应硬件上的一个CU（computing unit）。这种对应可以理解为，一个work-item不能被拆分到多个PE上处理；同样
+一个work-group也不能拆分到多个CU上同时处理（忘了哪里看到的信息）。当映射到OpenCL硬件模型上时，每一个work-item运行在一个被称为处理基元（processing element）的抽象硬件单元上，其中每个处理基元
+可以处理多个work-item(注：摘自《OpenCL异构计算》P87)。（如此而言，是不是说对于二维的globalx必须是localx的整数倍，globaly必须是localy的整数倍？那么如果我数据很大，work-item所能数量很多，如果
+一个group中中work-item的数量不超过CU中PE的个数，那么group的数量就可能很多；如果我想让group数量小点，那work-item的数目就会很多，还能不能处理了呢？这里总是找不多一个权威的解释，还请高手指点！
+针对group和item的问题）。
+对应CUDA
+组织多个workgroup,每个workgroup划分为多个thread.由于硬件的限制，比如cu中pe数量的限制，实际上workgroup中线程并不是同时执行的，而是有一个调度单位，同一个workgroup中的线程，按照调度单位分组，
+然后一组一组调度硬件上去执行。这个调度单位在nvidia的硬件上称作warp,在AMD的硬件上称作wavefront，或者简称为wave
+
+所以理解上可以简单总结如下
+
+首先解释下Cuda中的名词：
+Block: 相当于opencl 中的work-group
+Thread：相当于opencl 中的work-item
+SP:   相当于opencl 中的PE
+SM:  相当于opencl 中的CU
+warp: 相当于opencl 中的wavefront(简称wave).
