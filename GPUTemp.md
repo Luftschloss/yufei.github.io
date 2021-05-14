@@ -20,7 +20,13 @@ OPENCL架构
 组织多个workgroup,每个workgroup划分为多个thread.由于硬件的限制，比如cu中pe数量的限制，实际上workgroup中线程并不是同时执行的，而是有一个调度单位，同一个workgroup中的线程，按照调度单位分组，
 然后一组一组调度硬件上去执行。这个调度单位在nvidia的硬件上称作warp,在AMD的硬件上称作wavefront，或者简称为wave
 
-所以理解上可以简单总结如下
+所以理解上可以简单总结如下：
+
+SP:最基本的处理单元。GPU进行并行计算，也就是很多个sp同时做处理。现在SP的术语已经有点弱化了，而是直接使用thread来代替。一个SP对应一个thread
+
+Warp：warp是SM调度和执行的基础概念，通常一个SM中的SP(thread)会分成几个warp(也就是SP在SM中是进行分组的，物理上进行的分组)，一般每一个WARP中有32个thread.这个WARP中的32个thread(sp)是一起工作的，执行相同的指令，如果没有这么多thread需要工作，那么这个WARP中的一些thread(sp)是不工作的（每一个线程都有自己的寄存器内存和local memory，一个warp中的线程是同时执行的，也就是当进行并行计算时，线程数尽量为32的倍数，如果线程数不上32的倍数的话；假如是1，则warp会生成一个掩码，当一个指令控制器对一个warp单位的线程发送指令时，32个线程中只有一个线程在真正执行，其他31个 进程会进入静默状态。）
+
+SM:streaming multiprocessor(sm)：多个sp加上其他的一些资源组成一个sm, 其他资源也就是存储资源，共享内存，寄储器等。可见，一个SM中的所有SP是先分成warp的，是共享同一个memory和instruction unit（指令单元）。从硬件角度讲，一个GPU由多个SM组成（当然还有其他部分），一个SM包含有多个SP（以及还有寄存器资源，shared memory资源，L1cache，scheduler，SPU，LD/ST单元等等）
 
 首先解释下Cuda中的名词：
 Block: 相当于opencl 中的work-group
